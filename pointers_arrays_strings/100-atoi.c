@@ -1,15 +1,15 @@
 #include "main.h"
 
 /**
- * _atoi - convert a string to an integer
- * @s: pointer to the string
+ * _atoi - converts a string to an integer
+ * @s: pointer to the string to convert
  *
  * Description:
- * - يتجاهل أي عدد من المحارف قبل الأرقام.
- * - يجمع كل إشارات '+' و '-' قبل أول رقم؛
- *   إذا كان عدد الـ '-' فردي تصبح الإشارة سالبة.
- * - يتوقف التحويل عند أول محرف غير رقمي بعد بدء القراءة.
- * - إن لم توجد أرقام يُرجَع 0.
+ * Parse the string until the first digit. Count every '+' and '-'
+ * before the first digit to determine the final sign. If no digits
+ * exist, return 0. Build the numeric value as a negative number to
+ * safely handle INT_MIN without overflow. Stop at the first non-digit
+ * after digits start.
  *
  * Return: the converted integer value
  */
@@ -18,30 +18,41 @@ int _atoi(char *s)
 	int i = 0;
 	int sign = 1;
 	int started = 0;
-	int result = 0;
+	int result = 0; /* keep result non-positive while building */
 
-	/* اعبر كل ما قبل الأرقام واجمع الإشارات */
+	/* scan until the first digit; count signs */
 	while (s[i] != '\0' && !started)
 	{
 		if (s[i] == '-')
 			sign = -sign;
 		else if (s[i] == '+')
-			; /* لا شيء */
+		{
+			/* do nothing */
+		}
 		else if (s[i] >= '0' && s[i] <= '9')
 			started = 1;
-		else
-			; /* محارف أخرى قبل الرقم تُتجاهل */
 
 		if (!started)
 			i++;
 	}
 
-	/* حوّل الأرقام المتتالية */
+	/* no digits found */
+	if (!started)
+		return (0);
+
+	/* build number as negative to support INT_MIN safely */
 	while (s[i] >= '0' && s[i] <= '9')
 	{
-		result = (result * 10) + (s[i] - '0');
+		int digit = s[i] - '0';
+
+		result = (result * 10) - digit;
 		i++;
 	}
 
-	return (result * sign);
+	/* if sign is negative, result already negative */
+	if (sign < 0)
+		return (result);
+
+	/* sign is positive: make the negative result positive */
+	return (-result);
 }
