@@ -2,26 +2,22 @@
 
 /**
  * leet - encode a string into 1337
- * @s: pointer to the string to encode
+ * @s: string to encode
  *
- * Description: Replaces a/A->4, e/E->3, o/O->0, t/T->7, l/L->1.
- * Uses only two loops and a single if; no switch, no ternary.
- *
- * Return: pointer to the modified string
+ * Return: pointer to s
  */
 char *leet(char *s)
 {
 	int i = 0, j;
-	/* matching tables (10 chars) */
 	char from[] = "aAeEoOtTlL";
-	char to[]   = "4433007711";
+	char to[] = "4433007711";
 
-	while (s[i] != '\0')         /* loop 1: over the string */
+	while (s[i] != '\0')           /* loop 1 */
 	{
 		j = 0;
-		while (from[j] != '\0')  /* loop 2: over mappings */
+		while (from[j] != '\0')   /* loop 2 */
 		{
-			if (s[i] == from[j]) /* single if in the whole function */
+			if (s[i] == from[j])  /* single if in code */
 			{
 				s[i] = to[j];
 				break;
