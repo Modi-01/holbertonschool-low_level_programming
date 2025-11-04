@@ -3,10 +3,7 @@
 
 #include <stdlib.h>
 
-/* Prototype required by the checker */
-void *malloc_checked(unsigned int b);
-
-/* Provided by the checker; you don't push its .c file */
+char *string_nconcat(char *s1, char *s2, unsigned int n);
 int _putchar(char c);
 
 #endif /* MAIN_H */
