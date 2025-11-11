@@ -1,25 +1,26 @@
+/**
+ * File: function_pointers.h
+ * Desc: Header with prototypes for function-pointers tasks.
+ */
+
 #ifndef FUNCTION_POINTERS_H
 #define FUNCTION_POINTERS_H
 
 /**
- * File: function_pointers.h
- * Desc: Prototypes used in the function pointers tasks.
- */
-
-/**
- * _putchar - Write a character to standard output
- * @c: Character to print
+ * _putchar - writes the character c to stdout
+ * @c: The character to print
  *
- * Return: 1 on success, or -1 on error with errno set.
+ * Return: On success 1.
+ *         On error, -1 is returned and errno is set appropriately.
  */
 int _putchar(char c);
 
 /**
- * print_name - Call a callback function to print a name
+ * print_name - calls a function given as a parameter on a name
  * @name: Pointer to the name string
  * @f: Pointer to a function that takes (char *) and returns void
  *
- * Return: Nothing.
+ * Return: void
  */
 void print_name(char *name, void (*f)(char *));
 
