@@ -3,11 +3,11 @@
 #include "variadic_functions.h"
 
 /**
- * print_all - Prints anything according to a format string.
- * @format: A string with type chars:
- *          'c' char, 'i' int, 'f' float, 's' char* (NULL -> (nil)).
+ * print_all - prints anything according to a format string
+ * @format: string of type chars:
+ *          'c' char, 'i' int, 'f' float, 's' char* (NULL -> "(nil)")
  *
- * Return: (void)
+ * Return: Nothing.
  */
 void print_all(const char * const format, ...)
 {
