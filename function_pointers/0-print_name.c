@@ -1,15 +1,20 @@
 #include "function_pointers.h"
+#include <stddef.h>
 
 /**
- * print_name - calls a function given as a parameter on a name
- * @name: Pointer to the name string
- * @f: Pointer to a function that takes (char *) and returns void
+ * print_name - call a printer function on a given name
+ * @name: pointer to the name string
+ * @f: pointer to a function that receives (char *) and returns nothing
  *
- * Return: void
+ * Return: Nothing.
+ *
+ * Description:
+ * If either @name or @f is NULL, the function does nothing to
+ * respect robustness and avoid dereferencing invalid pointers.
  */
 void print_name(char *name, void (*f)(char *))
 {
-	if (name == 0 || f == 0)
+	if (name == NULL || f == NULL)
 		return;
 
 	f(name);
