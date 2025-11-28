@@ -7,6 +7,7 @@
  * @n: value to store in the new node
  *
  * Return: address of the new node, or NULL if it failed
+ * or if it is not possible to add the new node at index idx
  */
 dlistint_t *insert_dnodeint_at_index(dlistint_t **h, unsigned int idx, int n)
 {
@@ -17,34 +18,30 @@ dlistint_t *insert_dnodeint_at_index(dlistint_t **h, unsigned int idx, int n)
 	if (h == NULL)
 		return (NULL);
 
-	/* إدراج في البداية */
+	/* insert at the beginning of the list */
 	if (idx == 0)
 		return (add_dnodeint(h, n));
 
-	/* القائمة غير فاضية ونبغى موقع داخلها أو في نهايتها */
 	temp = *h;
+
+	/* move temp to the node just before the desired index (idx - 1) */
 	while (temp != NULL && i < idx - 1)
 	{
 		temp = temp->next;
 		i++;
 	}
 
-	/* لو وصلنا للنهاية قبل الوصول للموقع المطلوب → index غير صالح */
+	/* index is out of range */
 	if (temp == NULL)
 		return (NULL);
 
-	/* إدراج في النهاية تمامًا */
-	if (temp->next == NULL && i == idx - 1)
-		return (add_dnodeint_end(h, n));
-
-	/* إدراج في المنتصف بين temp و temp->next */
 	new_node = malloc(sizeof(dlistint_t));
 	if (new_node == NULL)
 		return (NULL);
 
 	new_node->n = n;
-	new_node->prev = temp;
 	new_node->next = temp->next;
+	new_node->prev = temp;
 
 	if (temp->next != NULL)
 		temp->next->prev = new_node;
