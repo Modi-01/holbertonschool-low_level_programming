@@ -2,25 +2,10 @@
 #include <stdio.h>
 
 /**
- * check_args - checks the number of arguments
- * @argc: argument count
- *
- * Return: void
- */
-void check_args(int argc)
-{
-	if (argc != 3)
-	{
-		dprintf(STDERR_FILENO, "Usage: cp file_from file_to\n");
-		exit(97);
-	}
-}
-
-/**
  * open_file_from - opens the source file
  * @file_from: name of the file to copy from
  *
- * Return: the file descriptor of the source file
+ * Return: file descriptor of the source file
  */
 int open_file_from(const char *file_from)
 {
@@ -38,10 +23,10 @@ int open_file_from(const char *file_from)
 }
 
 /**
- * open_file_to - opens/creates the destination file
+ * open_file_to - opens or creates the destination file
  * @file_to: name of the file to copy to
  *
- * Return: the file descriptor of the destination file
+ * Return: file descriptor of the destination file
  */
 int open_file_to(const char *file_to)
 {
@@ -60,7 +45,7 @@ int open_file_to(const char *file_to)
 
 /**
  * close_file - closes a file descriptor
- * @fd: the file descriptor to close
+ * @fd: file descriptor to close
  *
  * Return: void
  */
@@ -75,7 +60,7 @@ void close_file(int fd)
 }
 
 /**
- * copy_content - copies data from one file descriptor to another
+ * copy_content - copies the content from one file to another
  * @fd_from: source file descriptor
  * @fd_to: destination file descriptor
  * @file_from: name of the source file
@@ -123,7 +108,12 @@ int main(int argc, char **argv)
 {
 	int fd_from, fd_to;
 
-	check_args(argc);
+	if (argc != 3)
+	{
+		dprintf(STDERR_FILENO, "Usage: cp file_from file_to\n");
+		exit(97);
+	}
+
 	fd_from = open_file_from(argv[1]);
 	fd_to = open_file_to(argv[2]);
 	copy_content(fd_from, fd_to, argv[1], argv[2]);
