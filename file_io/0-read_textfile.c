@@ -1,19 +1,18 @@
-/* 0-read_textfile.c */
-
 #include "main.h"
 
 /**
- * read_textfile - reads a text file and prints it to stdout
- * @filename: name of the file to read
- * @letters: number of letters to read and print
+ * read_textfile - reads a text file and prints it to POSIX stdout
+ * @filename: pointer to the name of the file to read
+ * @letters: maximum number of bytes to read and print
  *
- * Return: actual number of letters it could read and print,
+ * Return: the actual number of bytes read and printed,
  *         or 0 on any failure
  */
 ssize_t read_textfile(const char *filename, size_t letters)
 {
 	int fd;
-	ssize_t r_bytes, w_bytes;
+	ssize_t r_bytes;
+	ssize_t w_bytes;
 	char *buffer;
 
 	if (filename == NULL || letters == 0)
