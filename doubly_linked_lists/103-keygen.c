@@ -2,66 +2,80 @@
 #include <stdlib.h>
 #include <string.h>
 
+void generate_key(char *username, char *key);
+
 /**
- * main - generate a key depending on a username for crackme5
- * @argc: number of arguments passed
- * @argv: array of arguments (expects the username)
+ * main - entry point for key generator of crackme5
+ * @argc: number of arguments
+ * @argv: array of argument strings (expects username)
  *
  * Return: 0 on success, 1 on error
  */
 int main(int argc, char *argv[])
 {
-	unsigned int i, b;
-	size_t len, add;
-	char *l = "A-CHRDw87lNS0E9B2TibgpnMVys5XzvtOGJcYLU+4mjW6fxqZeF3Qa1rPhdKIouk";
-	char p[7];
+	char key[7];
 
 	if (argc != 2)
 	{
-		printf("Correct usage: ./keygen5 username\n");
+		printf("Correct usage: %s username\n", argv[0]);
 		return (1);
 	}
 
-	len = strlen(argv[1]);
-
-	/* 1st char of the key */
-	p[0] = l[(len ^ 59) & 63];
-
-	/* 2nd char of the key */
-	add = 0;
-	for (i = 0; i < len; i++)
-		add += argv[1][i];
-	p[1] = l[(add ^ 79) & 63];
-
-	/* 3rd char of the key */
-	b = 1;
-	for (i = 0; i < len; i++)
-		b *= argv[1][i];
-	p[2] = l[(b ^ 85) & 63];
-
-	/* 4th char of the key */
-	b = argv[1][0];
-	for (i = 0; i < len; i++)
-		if ((char)b <= argv[1][i])
-			b = argv[1][i];
-	srand(b ^ 14);
-	p[3] = l[rand() & 63];
-
-	/* 5th char of the key */
-	b = 0;
-	for (i = 0; i < len; i++)
-		b += argv[1][i] * argv[1][i];
-	p[4] = l[(b ^ 239) & 63];
-
-	/* 6th char of the key */
-	b = 0;
-	for (i = 0; (char)i < argv[1][0]; i++)
-		b = rand();
-	p[5] = l[(b ^ 229) & 63];
-
-	p[6] = '\0';
-
-	printf("%s\n", p);
+	generate_key(argv[1], key);
+	printf("%s\n", key);
 
 	return (0);
+}
+
+/**
+ * generate_key - computes a valid key for crackme5 from a username
+ * @username: input username
+ * @key: buffer where the generated key will be stored (size >= 7)
+ *
+ * Return: void
+ */
+void generate_key(char *username, char *key)
+{
+	unsigned int i, b;
+	size_t len, add;
+	char *l = "A-CHRDw87lNS0E9B2TibgpnMVys5XzvtOGJcYLU+4mjW6fxqZeF3Qa1rPhdKIouk";
+
+	len = strlen(username);
+
+	/* 1st character */
+	key[0] = l[(len ^ 59) & 63];
+
+	/* 2nd character */
+	add = 0;
+	for (i = 0; i < len; i++)
+		add += username[i];
+	key[1] = l[(add ^ 79) & 63];
+
+	/* 3rd character */
+	b = 1;
+	for (i = 0; i < len; i++)
+		b *= username[i];
+	key[2] = l[(b ^ 85) & 63];
+
+	/* 4th character */
+	b = (unsigned int)username[0];
+	for (i = 0; i < len; i++)
+		if ((char)b <= username[i])
+			b = username[i];
+	srand(b ^ 14);
+	key[3] = l[rand() & 63];
+
+	/* 5th character */
+	b = 0;
+	for (i = 0; i < len; i++)
+		b += username[i] * username[i];
+	key[4] = l[(b ^ 239) & 63];
+
+	/* 6th character */
+	b = 0;
+	for (i = 0; (char)i < username[0]; i++)
+		b = rand();
+	key[5] = l[(b ^ 229) & 63];
+
+	key[6] = '\0';
 }
