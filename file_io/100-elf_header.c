@@ -3,7 +3,6 @@
 #include <unistd.h>
 #include <fcntl.h>
 #include <elf.h>
-#include <stdint.h>
 
 #define SWAP16(x) (((x) >> 8) | ((x) << 8))
 #define SWAP32(x) ((((x) >> 24) & 0x000000ff) | \
@@ -20,39 +19,15 @@
 	(((x) << 56) & 0xff00000000000000UL))
 
 /**
- * error_exit - prints an error message to stderr and exits with 98
- * @msg: error message
- *
- * Return: void (does not return)
- */
-void error_exit(const char *msg)
-{
-	dprintf(STDERR_FILENO, "%s\n", msg);
-	exit(98);
-}
-
-/**
- * check_elf - checks that a file is an ELF file
- * @e_ident: pointer to the ELF identification bytes
+ * print_header - prints selected fields from an ELF header
+ * @e_ident: ELF identification bytes
+ * @e_type: ELF file type (already fixed for endianness)
+ * @e_entry: entry point address (already fixed for endianness)
  *
  * Return: void
  */
-void check_elf(unsigned char *e_ident)
-{
-	if (e_ident[EI_MAG0] != ELFMAG0 ||
-	    e_ident[EI_MAG1] != ELFMAG1 ||
-	    e_ident[EI_MAG2] != ELFMAG2 ||
-	    e_ident[EI_MAG3] != ELFMAG3)
-		error_exit("Error: Not an ELF file");
-}
-
-/**
- * print_magic - prints the ELF magic bytes
- * @e_ident: pointer to the ELF identification bytes
- *
- * Return: void
- */
-void print_magic(unsigned char *e_ident)
+void print_header(unsigned char *e_ident,
+	unsigned short e_type, unsigned long e_entry)
 {
 	int i;
 
@@ -65,133 +40,129 @@ void print_magic(unsigned char *e_ident)
 			printf(" ");
 	}
 	printf("\n");
-}
 
-/**
- * print_class_data_version - prints class, data encoding and version
- * @e_ident: pointer to the ELF identification bytes
- *
- * Return: void
- */
-void print_class_data_version(unsigned char *e_ident)
-{
 	printf("  Class:                             ");
-	switch (e_ident[EI_CLASS])
-	{
-	case ELFCLASS32:
+	if (e_ident[EI_CLASS] == ELFCLASS32)
 		printf("ELF32\n");
-		break;
-	case ELFCLASS64:
+	else if (e_ident[EI_CLASS] == ELFCLASS64)
 		printf("ELF64\n");
-		break;
-	default:
+	else
 		printf("none\n");
-		break;
-	}
 
 	printf("  Data:                              ");
-	switch (e_ident[EI_DATA])
-	{
-	case ELFDATA2LSB:
+	if (e_ident[EI_DATA] == ELFDATA2LSB)
 		printf("2's complement, little endian\n");
-		break;
-	case ELFDATA2MSB:
+	else if (e_ident[EI_DATA] == ELFDATA2MSB)
 		printf("2's complement, big endian\n");
-		break;
-	default:
+	else
 		printf("none\n");
-		break;
-	}
 
 	printf("  Version:                           %d",
-	       e_ident[EI_VERSION]);
-	if (e_ident[EI_VERSION] == EV_CURRENT)
+		e_ident[EI_VERSION]);
+	if (e_ident[EI_VERSION] == 1)
 		printf(" (current)");
 	printf("\n");
-}
 
-/**
- * print_osabi_abiversion - prints OS/ABI and ABI Version
- * @e_ident: pointer to the ELF identification bytes
- *
- * Return: void
- */
-void print_osabi_abiversion(unsigned char *e_ident)
-{
 	printf("  OS/ABI:                            ");
-	switch (e_ident[EI_OSABI])
-	{
-	case ELFOSABI_SYSV:
-	case ELFOSABI_NONE:
+	if (e_ident[EI_OSABI] == ELFOSABI_SYSV ||
+	    e_ident[EI_OSABI] == ELFOSABI_NONE)
 		printf("UNIX - System V\n");
-		break;
-	case ELFOSABI_NETBSD:
+	else if (e_ident[EI_OSABI] == ELFOSABI_NETBSD)
 		printf("UNIX - NetBSD\n");
-		break;
-	case ELFOSABI_SOLARIS:
+	else if (e_ident[EI_OSABI] == ELFOSABI_SOLARIS)
 		printf("UNIX - Solaris\n");
-		break;
-	default:
+	else
 		printf("<unknown: %x>\n", e_ident[EI_OSABI]);
-		break;
-	}
 
 	printf("  ABI Version:                       %d\n",
-	       e_ident[EI_ABIVERSION]);
-}
-
-/**
- * print_type_entry - prints the ELF type and entry point address
- * @e_type: ELF type
- * @e_entry: entry point address
- * @e_ident: pointer to the ELF identification bytes
- *
- * Return: void
- */
-void print_type_entry(uint16_t e_type, unsigned long int e_entry,
-		      unsigned char *e_ident)
-{
-	if (e_ident[EI_DATA] == ELFDATA2MSB)
-		e_type = SWAP16(e_type);
+		e_ident[EI_ABIVERSION]);
 
 	printf("  Type:                              ");
-	switch (e_type)
-	{
-	case ET_NONE:
+	if (e_type == ET_NONE)
 		printf("NONE (No file type)\n");
-		break;
-	case ET_REL:
+	else if (e_type == ET_REL)
 		printf("REL (Relocatable file)\n");
-		break;
-	case ET_EXEC:
+	else if (e_type == ET_EXEC)
 		printf("EXEC (Executable file)\n");
-		break;
-	case ET_DYN:
+	else if (e_type == ET_DYN)
 		printf("DYN (Shared object file)\n");
-		break;
-	case ET_CORE:
+	else if (e_type == ET_CORE)
 		printf("CORE (Core file)\n");
-		break;
-	default:
+	else
 		printf("<unknown: %x>\n", e_type);
-		break;
-	}
-
-	if (e_ident[EI_DATA] == ELFDATA2MSB)
-	{
-		if (e_ident[EI_CLASS] == ELFCLASS32)
-			e_entry = SWAP32((uint32_t)e_entry);
-		else
-			e_entry = SWAP64(e_entry);
-	}
 
 	printf("  Entry point address:               %#lx\n", e_entry);
 }
 
 /**
- * main - displays the information contained in the ELF header
- *        at the start of an ELF file
- * @argc: number of arguments
+ * handle_64 - reads and prints ELF64 header
+ * @fd: file descriptor
+ * @e_ident: ELF identification bytes
+ *
+ * Return: void
+ */
+void handle_64(int fd, unsigned char *e_ident)
+{
+	Elf64_Ehdr h64;
+	ssize_t r;
+	unsigned short type;
+	unsigned long entry;
+
+	r = read(fd, &h64, sizeof(h64));
+	if (r != (ssize_t)sizeof(h64))
+	{
+		printf("Error: Can't read ELF header\n");
+		exit(98);
+	}
+
+	type = h64.e_type;
+	entry = (unsigned long)h64.e_entry;
+
+	if (e_ident[EI_DATA] == ELFDATA2MSB)
+	{
+		type = SWAP16(type);
+		entry = SWAP64(entry);
+	}
+
+	print_header(e_ident, type, entry);
+}
+
+/**
+ * handle_32 - reads and prints ELF32 header
+ * @fd: file descriptor
+ * @e_ident: ELF identification bytes
+ *
+ * Return: void
+ */
+void handle_32(int fd, unsigned char *e_ident)
+{
+	Elf32_Ehdr h32;
+	ssize_t r;
+	unsigned short type;
+	unsigned long entry;
+
+	r = read(fd, &h32, sizeof(h32));
+	if (r != (ssize_t)sizeof(h32))
+	{
+		printf("Error: Can't read ELF header\n");
+		exit(98);
+	}
+
+	type = h32.e_type;
+	entry = (unsigned long)h32.e_entry;
+
+	if (e_ident[EI_DATA] == ELFDATA2MSB)
+	{
+		type = SWAP16(type);
+		entry = (unsigned long)SWAP32((unsigned int)entry);
+	}
+
+	print_header(e_ident, type, entry);
+}
+
+/**
+ * main - displays information from the ELF header of a file
+ * @argc: argument count
  * @argv: argument vector
  *
  * Return: 0 on success, 98 on error (via exit)
@@ -200,68 +171,62 @@ int main(int argc, char **argv)
 {
 	int fd;
 	ssize_t r;
-	unsigned char ident[EI_NIDENT];
+	unsigned char e_ident[EI_NIDENT];
 
 	if (argc != 2)
-		error_exit("Usage: elf_header elf_filename");
+	{
+		printf("Usage: elf_header elf_filename\n");
+		exit(98);
+	}
 
 	fd = open(argv[1], O_RDONLY);
 	if (fd == -1)
-		error_exit("Error: Can't read file");
-
-	r = read(fd, ident, EI_NIDENT);
-	if (r != EI_NIDENT)
 	{
-		close(fd);
-		error_exit("Error: Can't read ELF header");
+		printf("Error: Can't read file %s\n", argv[1]);
+		exit(98);
 	}
 
-	check_elf(ident);
+	r = read(fd, e_ident, EI_NIDENT);
+	if (r != EI_NIDENT)
+	{
+		printf("Error: Can't read ELF header\n");
+		close(fd);
+		exit(98);
+	}
+
+	if (e_ident[EI_MAG0] != ELFMAG0 ||
+	    e_ident[EI_MAG1] != ELFMAG1 ||
+	    e_ident[EI_MAG2] != ELFMAG2 ||
+	    e_ident[EI_MAG3] != ELFMAG3)
+	{
+		printf("Error: Not an ELF file\n");
+		close(fd);
+		exit(98);
+	}
 
 	if (lseek(fd, 0, SEEK_SET) == -1)
 	{
+		printf("Error: Can't lseek\n");
 		close(fd);
-		error_exit("Error: Can't lseek");
+		exit(98);
 	}
 
-	if (ident[EI_CLASS] == ELFCLASS64)
-	{
-		Elf64_Ehdr h64;
-
-		r = read(fd, &h64, sizeof(h64));
-		if (r != (ssize_t)sizeof(h64))
-		{
-			close(fd);
-			error_exit("Error: Can't read ELF header");
-		}
-		print_magic(h64.e_ident);
-		print_class_data_version(h64.e_ident);
-		print_osabi_abiversion(h64.e_ident);
-		print_type_entry(h64.e_type, (unsigned long)h64.e_entry,
-				 h64.e_ident);
-	}
-	else if (ident[EI_CLASS] == ELFCLASS32)
-	{
-		Elf32_Ehdr h32;
-
-		r = read(fd, &h32, sizeof(h32));
-		if (r != (ssize_t)sizeof(h32))
-		{
-			close(fd);
-			error_exit("Error: Can't read ELF header");
-		}
-		print_magic(h32.e_ident);
-		print_class_data_version(h32.e_ident);
-		print_osabi_abiversion(h32.e_ident);
-		print_type_entry(h32.e_type, (unsigned long)h32.e_entry,
-				 h32.e_ident);
-	}
+	if (e_ident[EI_CLASS] == ELFCLASS64)
+		handle_64(fd, e_ident);
+	else if (e_ident[EI_CLASS] == ELFCLASS32)
+		handle_32(fd, e_ident);
 	else
 	{
+		printf("Error: Invalid ELF class\n");
 		close(fd);
-		error_exit("Error: Unknown ELF class");
+		exit(98);
 	}
 
-	close(fd);
+	if (close(fd) == -1)
+	{
+		printf("Error: Can't close file\n");
+		exit(98);
+	}
+
 	return (0);
 }
