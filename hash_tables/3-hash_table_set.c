@@ -2,6 +2,8 @@
 #include <string.h>
 #include "hash_tables.h"
 
+static hash_node_t *create_node(const char *key, const char *value);
+
 /**
  * hash_table_set - Adds an element to a hash table
  * @ht: Pointer to the hash table
@@ -13,8 +15,8 @@
 int hash_table_set(hash_table_t *ht, const char *key, const char *value)
 {
 	unsigned long int index;
-	hash_node_t *node, *tmp;
-	char *key_copy, *value_copy;
+	hash_node_t *tmp, *new_node;
+	char *value_copy;
 
 	if (ht == NULL || key == NULL || *key == '\0' || value == NULL)
 		return (0);
@@ -22,7 +24,6 @@ int hash_table_set(hash_table_t *ht, const char *key, const char *value)
 	index = key_index((const unsigned char *)key, ht->size);
 	tmp = ht->array[index];
 
-	/* If key already exists, update its value */
 	while (tmp != NULL)
 	{
 		if (strcmp(tmp->key, key) == 0)
@@ -30,7 +31,6 @@ int hash_table_set(hash_table_t *ht, const char *key, const char *value)
 			value_copy = strdup(value);
 			if (value_copy == NULL)
 				return (0);
-
 			free(tmp->value);
 			tmp->value = value_copy;
 			return (1);
@@ -38,16 +38,37 @@ int hash_table_set(hash_table_t *ht, const char *key, const char *value)
 		tmp = tmp->next;
 	}
 
-	/* Key does not exist: create a new node */
+	new_node = create_node(key, value);
+	if (new_node == NULL)
+		return (0);
+
+	new_node->next = ht->array[index];
+	ht->array[index] = new_node;
+
+	return (1);
+}
+
+/**
+ * create_node - Creates a new node for the hash table
+ * @key: Key string (will be duplicated)
+ * @value: Value string (will be duplicated)
+ *
+ * Return: Pointer to the new node, or NULL on failure
+ */
+static hash_node_t *create_node(const char *key, const char *value)
+{
+	hash_node_t *node;
+	char *key_copy, *value_copy;
+
 	node = malloc(sizeof(hash_node_t));
 	if (node == NULL)
-		return (0);
+		return (NULL);
 
 	key_copy = strdup(key);
 	if (key_copy == NULL)
 	{
 		free(node);
-		return (0);
+		return (NULL);
 	}
 
 	value_copy = strdup(value);
@@ -55,15 +76,12 @@ int hash_table_set(hash_table_t *ht, const char *key, const char *value)
 	{
 		free(key_copy);
 		free(node);
-		return (0);
+		return (NULL);
 	}
 
 	node->key = key_copy;
 	node->value = value_copy;
+	node->next = NULL;
 
-	/* add at the beginning of the list (collision handling) */
-	node->next = ht->array[index];
-	ht->array[index] = node;
-
-	return (1);
+	return (node);
 }
